@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/css/menuViewer.css" />
+  <title>Everybody's Kitchen</title>
+</head>
+
+<body>
+  <header>
+    <img src="/images/EATLogo.png" alt="EAT Logo" class="LogoInHeader" />
+
+    <nav>
+      <a href="/UserProfile">Profile</a>
+      <a href="/dining">Home</a>
+    </nav>
+  </header>
+
+  <div class="titleContainer">
+    <h1>Everybody's Kitchen</h1>
+  </div>
+
+  <div id="menu-items-display">
+    <ul style="list-style-type: none">
+      <!-- Iterate over each MenuItem -->
+      <!-- Change all the things that says placeHolder -->
+      <li th:each="menuItem : ${menuItems}">
+        <div th:id="${menuItem.item_name}" class="card">
+          <div class="content">
+            <div class="title" th:text="${menuItem.item_name}">
+              village food
+            </div>
+            <div class="reaction">
+              <button th:data-id="${menuItem.item_id}" id="thumb-up" class="thumb">👍</button>
+              <span th:id="'likes-count#' + ${menuItem.item_id}" class="likes-count" th:text="${menuItem.likes} - ${menuItem.dislikes} ">34</span>
+              <button th:data-id="${menuItem.item_id}" id="thumb-down" class="thumb">👎</button>
+            </div>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <script>
+    var elements = document.getElementsByClassName("thumb");
+    for(let i = 0; i < elements.length; i++)
+    {
+      elements[i].addEventListener("click", function (e) {
+        if(elements[i].getAttribute("id") == "thumb-up")
+        {
+          updateLikes(1, e);
+        }
+        else if(elements[i].getAttribute("id") == "thumb-down")
+        {
+          updateLikes(-1, e);
+        }
+      });
+    }
+
+    function updateLikes(change, e) {
+      // Get the current number of likes
+      var id  = e.target.getAttribute("data-id");
+
+      let likesCount = parseInt(
+        document.getElementById("likes-count#"+id).textContent
+      );
+      // Calculate the new number of likes
+      likesCount += change;
+
+      var likeOrDislike = change == 1 ? "/like" : "/dislike"
+
+      // Update the likes count on the backend
+      // Placeholder for backend request - use the URL of your backend API
+      fetch("/menuItems/"+id+likeOrDislike, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ likes: likesCount }),
+      })
+        .then((response) => 
+        {response.json() 
+          console.log(response)}
+          )
+        .then((data) => {
+          // Update the likes count on the frontend
+          location.reload();
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+    }
+  </script>
+</body>
+
+</html>
